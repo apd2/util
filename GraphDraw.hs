@@ -947,10 +947,10 @@ drawTarget graph pixmap = do
     --putStrLn $ "drawGhostState"
     gc <- (G.gcNewWithValues pixmap) (gcToGCV targetStyle)
     let (x,y) = (gMousePosition graph)
-        x' = (fromIntegral $ round $ x) :: Int
-        y' = (fromIntegral $ round $ y) :: Int
-    G.drawLine pixmap gc (x'-targetRadius, y') (x'+targetRadius, y')
-    G.drawLine pixmap gc (x', y'-targetRadius) (x', y'+targetRadius)
+        --x' = (fromIntegral $ round $ x) :: Int
+        --y' = (fromIntegral $ round $ y) :: Int
+    drawLineD graph pixmap gc (x-targetRadius, y) (x+targetRadius, y)
+    drawLineD graph pixmap gc (x, y-targetRadius) (x, y+targetRadius)
 
 
 drawActiveCorner :: GraphDraw -> G.Pixmap -> (Double, Double) -> IO ()
@@ -1111,8 +1111,8 @@ autoLayoutPreprocess :: GraphDrawGr -> [GEdgeId] -> GraphDrawGr
 autoLayoutPreprocess g edges = 
     let alledges = labEdges g
     in foldr (\(from, to, ge) tg -> if elem (geId ge) edges 
-                                       then g
-                                       else delLEdge (from, to, ge) g) g alledges
+                                       then tg
+                                       else delLEdge (from, to, ge) tg) g alledges
 
 dotNodeId (GVT.DotNode _ attrs) = 
     let (Label (StrLabel lab)) = fromJust $ find (\attr -> case attr of

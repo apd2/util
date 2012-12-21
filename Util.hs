@@ -39,8 +39,25 @@ module Util(
     chain,
     Named(..),
     withName,
-    aggregate
-    ) where
+    aggregate,
+    mapFst,
+    mapSnd,
+    map2,
+    map3,
+    mapFst3,
+    mapSnd3,
+    mapTrd3,
+    mapFst4,
+    mapSnd4,
+    mapTrd4,
+    mapFrt4,
+    fst3,
+    snd3,
+    trd3,
+    fst4,
+    snd4,
+    trd4,
+    frt4) where
 
 import Data.Bits
 import System.IO.Unsafe
@@ -240,3 +257,34 @@ aggregate args = Map.toList $ foldl f Map.empty args
         Just x -> Map.insert a (b:x) mp
         Nothing -> Map.insert a [b] mp
 
+-- Tuples
+mapFst :: (a -> b) -> (a, c) -> (b, c)
+mapFst f (x,y) = (f x,y)
+mapSnd :: (a -> b) -> (c, a) -> (c, b)
+mapSnd f (x,y) = (x,f y)
+
+map2 :: (a->b, c->d) -> (a,c) -> (b,d)
+map2 (f1,f2) (x,y) = (f1 x, f2 y)
+
+map3 :: (a->b, c->d, e->f) -> (a,c,e) -> (b,d,f)
+map3 (f1,f2,f3) (x,y,z) = (f1 x, f2 y, f3 z)
+
+mapFst3 f (x1,x2,x3) = (f x1,x2,x3)
+mapSnd3 f (x1,x2,x3) = (x1,f x2,x3)
+mapTrd3 f (x1,x2,x3) = (x1,x2,f x3)
+
+mapFst4 f (x1,x2,x3,x4) = (f x1,x2,x3,x4)
+mapSnd4 f (x1,x2,x3,x4) = (x1,f x2,x3,x4)
+mapTrd4 f (x1,x2,x3,x4) = (x1,x2,f x3,x4)
+mapFrt4 f (x1,x2,x3,x4) = (x1,x2,x3,f x4)
+
+
+
+fst3 (a,_,_) = a
+snd3 (_,b,_) = b
+trd3 (_,_,c) = c
+
+fst4 (a,_,_,_) = a
+snd4 (_,b,_,_) = b
+trd4 (_,_,c,_) = c
+frt4 (_,_,_,d) = d

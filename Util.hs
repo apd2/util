@@ -42,6 +42,7 @@ module Util(
     aggregate,
     mapFst,
     mapSnd,
+    mapIdx,
     map2,
     map3,
     mapFst3,
@@ -256,6 +257,9 @@ aggregate args = Map.toList $ foldl f Map.empty args
     f mp (a, b) = case Map.lookup a mp of
         Just x -> Map.insert a (b:x) mp
         Nothing -> Map.insert a [b] mp
+
+mapIdx :: (a -> Int -> b) -> [a] -> [b]
+mapIdx f xs = map (uncurry f) $ zip xs [0..]
 
 -- Tuples
 mapFst :: (a -> b) -> (a, c) -> (b, c)

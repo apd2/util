@@ -40,9 +40,12 @@ module Util(
     Named(..),
     withName,
     aggregate,
+    mapIdx,
+    mapIdxM,
+    foldIdx,
+    foldIdxM,
     mapFst,
     mapSnd,
-    mapIdx,
     map2,
     map3,
     mapFst3,
@@ -63,7 +66,9 @@ module Util(
 import Data.Bits
 import System.IO.Unsafe
 import Control.DeepSeq
+import Control.Monad
 import Data.Data
+import Data.List
 import Data.Typeable
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -260,6 +265,15 @@ aggregate args = Map.toList $ foldl f Map.empty args
 
 mapIdx :: (a -> Int -> b) -> [a] -> [b]
 mapIdx f xs = map (uncurry f) $ zip xs [0..]
+
+mapIdxM :: (Monad m) => (a -> Int -> m b) -> [a] -> m [b]
+mapIdxM f xs = mapM (uncurry f) $ zip xs [0..]
+
+foldIdx :: (a -> b -> Int -> a) -> a -> [b] -> a
+foldIdx f acc xs = foldl' (\acc (x,idx) -> f acc x idx) acc $ zip xs [0..]
+
+foldIdxM :: (Monad m) => (a -> b -> Int -> m a) -> a -> [b] -> m a
+foldIdxM f acc xs = foldM (\acc (x,idx) -> f acc x idx) acc $ zip xs [0..]
 
 -- Tuples
 mapFst :: (a -> b) -> (a, c) -> (b, c)

@@ -349,8 +349,8 @@ graphDrawSetMode ref mode = do
     writeIORef ref $ graph {gMode = mode}
     forceGraphUpdate ref
 
-graphDrawInsertNode :: RGraphDraw -> GNodeId -> [GAnnotation] -> (Double, Double) -> GC -> GC -> IO ()
-graphDrawInsertNode ref id annots coords linestyle areastyle = do
+graphDrawInsertNode :: RGraphDraw -> GNodeId -> [GAnnotation] -> (Double, Double) -> (GC, GC) -> IO ()
+graphDrawInsertNode ref id annots coords (linestyle, areastyle) = do
     graph <- readIORef ref
     let newgraph = graph {gGraph = (insNode (id, GNode annots coords linestyle areastyle) (gGraph graph))}
     writeIORef ref newgraph
@@ -388,8 +388,8 @@ graphDrawSetNodeAnnots ref node annots = do
     writeIORef ref $ graph {gGraph = g'}
     forceGraphUpdate ref
 
-graphDrawSetNodeStyle :: RGraphDraw -> GNodeId -> GC -> GC -> IO ()
-graphDrawSetNodeStyle ref id linestyle areastyle = do
+graphDrawSetNodeStyle :: RGraphDraw -> GNodeId -> (GC, GC) -> IO ()
+graphDrawSetNodeStyle ref id (linestyle, areastyle) = do
     graph <- readIORef ref
     let g' = gmap (\(to, nodeid, n, from) -> 
                     (to, nodeid, if nodeid == id then n {gnLineStyle = linestyle, gnAreaStyle = areastyle} else n, from)) (gGraph graph)

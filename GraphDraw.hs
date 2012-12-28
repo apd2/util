@@ -41,7 +41,9 @@ module GraphDraw(RGraphDraw,
                  graphDrawAutoLayout,
                  graphDrawToString,
                  graphDrawFromString,
-                 graphDrawSetGr) where
+                 graphDrawSetGr,
+
+                 graphDrawGetNodesAtLocation) where
 
 import Prelude hiding (catch)
 import GHC.Word
@@ -500,13 +502,16 @@ graphDrawFromString ref str = do
                                    forceGraphUpdate ref
                                    return $ Right ()
 
-
 graphDrawSetGr :: RGraphDraw -> GraphDrawGr -> IO ()
 graphDrawSetGr ref gr = do
     graph <- readIORef ref
     writeIORef ref $ graph {gGraph = gr}
     forceGraphUpdate ref
 
+graphDrawGetNodesAtLocation :: RGraphDraw -> (Double, Double) -> IO [GNodeId]
+graphDrawGetNodesAtLocation ref (x,y) = do
+    graph <- readIORef ref
+    return $ nodesAtLocation graph x y
 
 ----------------------------------------------------------
 -- GUI event handlers

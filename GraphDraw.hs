@@ -15,7 +15,9 @@ module GraphDraw(RGraphDraw,
                  GC(..),
 
                  graphDrawNew,
+                 graphDrawDefaultCB,
                  graphDrawConnect, 
+                 graphDrawDisconnect,
                  graphDrawWidget,
                  graphDrawSetCB,
                  graphDrawFitToScreen,
@@ -36,6 +38,7 @@ module GraphDraw(RGraphDraw,
                  graphDrawSetEdgeAnnots,
                  graphDrawSetEdgeCorners,
                  graphDrawSetEdgeVisible,
+                 graphDrawSetEdgeStyle,
                  graphDrawStraightenEdge,
 
                  graphDrawAutoLayout,
@@ -176,11 +179,12 @@ data GMode = GNormal          -- normal mode: choose and drag states and edges
 
 data GState = GIdle
             | GNodeDrag GNodeId GraphDrawGr
-            | GCornerDrag (LEdge GEdge) Int
+            | GCornerDrag (LEdge GEdge) (Either Int Int)
 
 data GraphDrawCB = GraphDrawCB {
     -- normal-mode callbacks
     onNodeRightClick  :: GNodeId                                         -> IO (),
+    onEdgeLeftClick   :: (Int, Int, GEdgeId)                             -> IO (),
     onEdgeRightClick  :: (Int, Int, GEdgeId)                             -> IO (),
     onEmptyRightClick :: (Double, Double)                                -> IO (),
     onNodeLeftClick   :: GNodeId                                         -> IO (),
@@ -191,14 +195,15 @@ data GraphDrawCB = GraphDrawCB {
     onLocateNode      :: G.MouseButton -> GNodeId                        -> IO ()
 }
 
-defaultCB = GraphDrawCB { onNodeRightClick    = (\_ -> return ())
-                        , onEdgeRightClick    = (\_ -> return ())
-                        , onEmptyRightClick   = (\_ -> return ())
-                        , onNodeLeftClick     = (\_ -> return ())
-                        , onNodeMoved         = (\_ _ _ -> return ())
-                        , onEdgeMoved         = return ()
-                        , onLocateEmpty       = (\_ _ -> return ())
-                        , onLocateNode        = (\_ _ -> return ())}
+graphDrawDefaultCB = GraphDrawCB { onNodeRightClick    = (\_ -> return ())
+                                 , onEdgeRightClick    = (\_ -> return ())
+                                 , onEdgeLeftClick     = (\_ -> return ())
+                                 , onEmptyRightClick   = (\_ -> return ())
+                                 , onNodeLeftClick     = (\_ -> return ())
+                                 , onNodeMoved         = (\_ _ _ -> return ())
+                                 , onEdgeMoved         = return ()
+                                 , onLocateEmpty       = (\_ _ -> return ())
+                                 , onLocateNode        = (\_ _ -> return ())}
 
 
 type GraphDrawGr = Gr GNode GEdge
@@ -289,7 +294,7 @@ graphDrawNew = do
                                 , gActiveCorner   = Nothing
                                 , gActiveNode     = Nothing
                                 , gActiveEdge     = Nothing
-                                , gCB             = defaultCB}
+                                , gCB             = graphDrawDefaultCB}
 
     G.onRealize area (updatePixmap ref)
     G.on area G.motionNotifyEvent (mouseMove ref)
@@ -312,6 +317,11 @@ graphDrawConnect ref = do
     graph <- readIORef ref
     writeIORef ref $ graph {gConnected = True}
     forceGraphUpdate ref
+
+graphDrawDisconnect :: RGraphDraw -> IO ()
+graphDrawDisconnect ref = do
+    graph <- readIORef ref
+    writeIORef ref $ graph {gConnected = False}
 
 graphDrawWidget :: RGraphDraw -> IO G.Widget
 graphDrawWidget ref = do
@@ -448,6 +458,16 @@ graphDrawSetEdgeVisible ref id b = do
     writeIORef ref $ graph {gGraph = g''}
     forceGraphUpdate ref
 
+graphDrawSetEdgeStyle :: RGraphDraw -> GEdgeId -> GC -> IO ()
+graphDrawSetEdgeStyle ref id style = do
+    graph <- readIORef ref
+    let (from,to,ge) = gEdge (gGraph graph) id
+        ge' = ge {geLineStyle = style}
+        g'  = delLEdge (from,to,ge) (gGraph graph)
+        g'' = insEdge (from,to,ge') g'
+    writeIORef ref $ graph {gGraph = g''}
+    forceGraphUpdate ref
+
 graphDrawSetEdgeCorners :: RGraphDraw -> GEdgeId -> [(Double, Double)] -> IO ()
 graphDrawSetEdgeCorners ref id corners = do
     graph <- readIORef ref
@@ -544,10 +564,16 @@ mouseMove ref = do
                                                               graph'' = moveNode oldgr graph' node (oldx, oldy) (gMousePosition graph')
                                                           writeIORef ref graph''
                                                           forceGraphUpdate ref
-                               GCornerDrag (from,to,edge) idx -> do let corners = (take idx $ geCorners edge) ++ [(gMousePosition graph')] ++ (drop (idx+1) $ geCorners edge)
-                                                                        graph'' = updateEdgeCorners graph' (geId edge) corners
-                                                                    writeIORef ref graph''
-                                                                    forceGraphUpdate ref
+                               GCornerDrag (from,to,edge) (Left idx) -> do let corners = (take idx $ geCorners edge) ++ [(x,y)] ++ (drop idx $ geCorners edge)
+                                                                               edge' = edge{geCorners = corners}
+                                                                               graph' = updateEdgeCorners graph (geId edge) corners
+                                                                           writeIORef ref graph'
+                                                                           setState ref (GCornerDrag (from,to,edge') (Right idx))
+                                                                           forceGraphUpdate ref
+                               GCornerDrag (from,to,edge) (Right idx) -> do let corners = (take idx $ geCorners edge) ++ [(gMousePosition graph')] ++ (drop (idx+1) $ geCorners edge)
+                                                                                graph'' = updateEdgeCorners graph' (geId edge) corners
+                                                                            writeIORef ref graph''
+                                                                            forceGraphUpdate ref
                                GIdle -> return ()
     return True
 
@@ -579,7 +605,7 @@ graphMouseClick ref = do
 	     (GNormal, GIdle, _, ((from, to, edge),_):_, [], G.RightButton, Event.SingleClick) ->  do 
                  (onEdgeRightClick $ gCB graph) (from,to,geId edge)
 		 return True
-	     -- Right-click on empty space opens another context menu
+             -- Right-click on empty space opens another context menu
 	     (GNormal, GIdle, [], _, [], G.RightButton, Event.SingleClick) ->  do 
                  (onEmptyRightClick $ gCB graph) (x,y)
 		 return True 
@@ -599,15 +625,12 @@ graphMouseClick ref = do
 		 return True
              -- Left-click on an edge creates a new corner and starts the corner dragging mode
 	     (GNormal, GIdle, _, ((from,to,edge),idx):_, [], G.LeftButton, Event.SingleClick) -> do 
-                 let corners = (take idx $ geCorners edge) ++ [(x,y)] ++ (drop idx $ geCorners edge)
-                     edge' = edge{geCorners = corners}
-                     graph' = updateEdgeCorners graph (geId edge) corners
-                 writeIORef ref graph'
-                 setState ref (GCornerDrag (from,to,edge') idx)
+                 (onEdgeLeftClick $ gCB graph) (from,to,geId edge)
+                 setState ref (GCornerDrag (from,to,edge) (Left idx))
                  return True
              -- Left-click on a corner starts a corner dragging mode
 	     (GNormal, GIdle, _, _, ((from,to,edge),idx):_, G.LeftButton, Event.SingleClick) -> do 
-                 setState ref (GCornerDrag (from,to,edge) idx)
+                 setState ref (GCornerDrag (from,to,edge) (Right idx))
                  return True
              (GNormal, GCornerDrag _ _, _, _, _, G.LeftButton, Event.ReleaseClick) -> do 
                  (onEdgeMoved $ gCB graph) 

@@ -63,7 +63,8 @@ module Util(
     fst4,
     snd4,
     trd4,
-    frt4) where
+    frt4,
+    getIORef) where
 
 import Data.Bits
 import System.IO.Unsafe
@@ -73,6 +74,7 @@ import Data.Data
 import Data.List
 import Data.Typeable
 import Data.Map (Map)
+import Data.IORef
 import qualified Data.Map as Map
 
 --Logarithm to base 2. Equivalent to floor(log2(x))
@@ -314,3 +316,8 @@ fst4 (a,_,_,_) = a
 snd4 (_,b,_,_) = b
 trd4 (_,_,c,_) = c
 frt4 (_,_,_,d) = d
+
+-- IORef
+
+getIORef :: (a -> b) -> IORef a -> IO b
+getIORef f = liftM f . readIORef

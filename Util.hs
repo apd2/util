@@ -134,10 +134,10 @@ bitsToBoolArrLe e = map (testBit e) [0..]
 bitsToBoolArrBe :: (Bits b) => Int -> b -> [Bool]
 bitsToBoolArrBe s e = reverse $ take s $ map (testBit e) [0..]
 
-boolArrToBitsLe :: (Bits a) => [Bool] -> a
+boolArrToBitsLe :: (Bits a, Num a) => [Bool] -> a
 boolArrToBitsLe bits = foldIdx (\x bit id -> if bit then setBit x id else x) 0 bits
 
-boolArrToBitsBe :: (Bits a) => [Bool] -> a
+boolArrToBitsBe :: (Bits a, Num a) => [Bool] -> a
 boolArrToBitsBe bits = foldIdx (\x bit id -> if bit then setBit x id else x) 0 (reverse bits)
 
 {-# DEPRECATED debugp, debugf, prints, debugm, showRes "Use Debug.TraceUtils instead" #-}

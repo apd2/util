@@ -58,7 +58,8 @@ module Util(
     mapTrd4,
     mapFrt4,
     getIORef,
-    pairs) where
+    pairs,
+    sortAndGroup) where
 
 import Data.Bits
 import System.IO.Unsafe
@@ -311,3 +312,11 @@ pairs :: [a] -> [(a,a)]
 pairs [] = []
 pairs [x] = []
 pairs (x:xs) = (map (x,) xs) ++ pairs xs
+
+-- Group elements in the list (unlike groupBy, this function groups all
+-- equivalent elements, not just adjacent ones)
+sortAndGroup :: (Ord b) => (a -> b) -> [a] -> [[a]]
+sortAndGroup f = groupBy (\x y -> f x == f y) .
+                 sortBy (\x y -> compare (f x) (f y))
+
+

@@ -1,4 +1,4 @@
-{-#LANGUAGE DeriveDataTypeable #-}
+{-#LANGUAGE DeriveDataTypeable, TupleSections #-}
 --Generic utility functions
 module Util(
     log2,
@@ -64,7 +64,8 @@ module Util(
     snd4,
     trd4,
     frt4,
-    getIORef) where
+    getIORef,
+    pairs) where
 
 import Data.Bits
 import System.IO.Unsafe
@@ -321,3 +322,10 @@ frt4 (_,_,_,d) = d
 
 getIORef :: (a -> b) -> IORef a -> IO b
 getIORef f = liftM f . readIORef
+
+-- unique pairs of array elements,
+-- excluding reflective pairs (x,x) and symmetric pairs (x,y), (y,x)
+pairs :: [a] -> [(a,a)]
+pairs [] = []
+pairs [x] = []
+pairs (x:xs) = (map (x,) xs) ++ pairs xs

@@ -57,13 +57,6 @@ module Util(
     mapSnd4,
     mapTrd4,
     mapFrt4,
-    fst3,
-    snd3,
-    trd3,
-    fst4,
-    snd4,
-    trd4,
-    frt4,
     getIORef,
     pairs) where
 
@@ -306,17 +299,6 @@ mapFst4 f (x1,x2,x3,x4) = (f x1,x2,x3,x4)
 mapSnd4 f (x1,x2,x3,x4) = (x1,f x2,x3,x4)
 mapTrd4 f (x1,x2,x3,x4) = (x1,x2,f x3,x4)
 mapFrt4 f (x1,x2,x3,x4) = (x1,x2,x3,f x4)
-
-
-
-fst3 (a,_,_) = a
-snd3 (_,b,_) = b
-trd3 (_,_,c) = c
-
-fst4 (a,_,_,_) = a
-snd4 (_,b,_,_) = b
-trd4 (_,_,c,_) = c
-frt4 (_,_,_,d) = d
 
 -- IORef
 

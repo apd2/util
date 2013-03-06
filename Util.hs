@@ -14,6 +14,7 @@ module Util(
     bitsToBoolArrBe,
     boolArrToBitsLe,
     boolArrToBitsBe,
+    msb,
     debug,
     debugm,
     prints,
@@ -134,6 +135,13 @@ boolArrToBitsLe bits = foldIdx (\x bit id -> if bit then setBit x id else x) 0 b
 
 boolArrToBitsBe :: (Bits a, Num a) => [Bool] -> a
 boolArrToBitsBe bits = foldIdx (\x bit id -> if bit then setBit x id else x) 0 (reverse bits)
+
+-- Determine the most significant set bit of a non-negative number 
+-- (returns 0 if not bits are set)
+msb :: (Bits b, Num b) => b -> Int
+msb 0 = 0
+msb 1 = 0
+msb n = 1 + (msb $ n `shiftR` 1)
 
 {-# DEPRECATED debugp, debugf, prints, debugm, showRes "Use Debug.TraceUtils instead" #-}
 --debug print in monad
@@ -318,5 +326,3 @@ pairs (x:xs) = (map (x,) xs) ++ pairs xs
 sortAndGroup :: (Ord b) => (a -> b) -> [a] -> [[a]]
 sortAndGroup f = groupBy (\x y -> f x == f y) .
                  sortBy (\x y -> compare (f x) (f y))
-
-

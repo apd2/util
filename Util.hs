@@ -2,6 +2,7 @@
 --Generic utility functions
 module Util(
     log2,
+    isPow2,
     b2IntMSF, 
     b2IntLSF,
     index,
@@ -80,6 +81,10 @@ log2 1 = 0
 log2 n 
     | n>1 = 1 + log2 (n `div` 2)
     | otherwise = error "log2: negative argument"
+
+-- Check is x is a power of 2
+isPow2 :: Integer -> Bool
+isPow2 x = (popCount x == 1) && (log2 x > 0)
 
 --Calculate the int representstion of a list of bools where the most significant bit appears first
 b2IntMSF :: [Bool] -> Integer

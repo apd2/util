@@ -1,6 +1,8 @@
 {-#LANGUAGE DeriveDataTypeable, TupleSections #-}
 --Generic utility functions
 module Util(
+    fromLeft,
+    fromRight,
     log2,
     isPow2,
     b2IntMSF, 
@@ -73,6 +75,12 @@ import Data.Typeable
 import Data.Map (Map)
 import Data.IORef
 import qualified Data.Map as Map
+
+fromLeft :: (Either a b) -> a
+fromLeft (Left x) = x
+
+fromRight :: (Either a b) -> b
+fromRight (Right x) = x
 
 --Logarithm to base 2. Equivalent to floor(log2(x))
 log2 :: Integer -> Int

@@ -63,12 +63,14 @@ module Util(
     mapFrt4,
     getIORef,
     pairs,
-    sortAndGroup) where
+    sortAndGroup,
+    traceST) where
 
 import Data.Bits
 import System.IO.Unsafe
 import Control.DeepSeq
 import Control.Monad
+import Control.Monad.ST
 import Data.Data
 import Data.List
 import Data.Typeable
@@ -339,3 +341,7 @@ pairs (x:xs) = (map (x,) xs) ++ pairs xs
 sortAndGroup :: (Ord b) => (a -> b) -> [a] -> [[a]]
 sortAndGroup f = groupBy (\x y -> f x == f y) .
                  sortBy (\x y -> compare (f x) (f y))
+
+{-# NOINLINE traceST #-}
+traceST :: String -> ST s ()
+traceST = unsafeIOToST . putStrLn

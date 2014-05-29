@@ -71,6 +71,7 @@ import System.IO.Unsafe
 import Control.DeepSeq
 import Control.Monad
 import Control.Monad.ST
+import Control.Monad.ST.Unsafe
 import Data.Data
 import Data.List
 import Data.Typeable

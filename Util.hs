@@ -345,4 +345,4 @@ sortAndGroup f = groupBy (\x y -> f x == f y) .
 
 {-# NOINLINE traceST #-}
 traceST :: String -> ST s ()
-traceST = unsafeIOToST . putStrLn
+traceST = Control.Monad.ST.Unsafe.unsafeIOToST . putStrLn

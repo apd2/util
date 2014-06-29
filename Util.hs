@@ -64,8 +64,7 @@ module Util(
     getIORef,
     pairs,
     sortAndGroup,
-    traceST,
-    (<$*>)) where
+    traceST) where
 
 import Data.Bits
 import System.IO.Unsafe
@@ -348,6 +347,3 @@ sortAndGroup f = groupBy (\x y -> f x == f y) .
 {-# NOINLINE traceST #-}
 traceST :: String -> ST s ()
 traceST = Control.Monad.ST.Unsafe.unsafeIOToST . putStrLn
-
-(<$*>) :: [[a]] -> [[a]]
-(<$*>) as = foldl' (\xs a -> (\bs b -> bs++[b]) <$> xs <*> a) (map (\x->[x]) (head as)) (tail as)

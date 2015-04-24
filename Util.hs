@@ -48,6 +48,7 @@ module Util(
     aggregate,
     mapIdx,
     mapIdxM,
+    mapIdxM_,
     foldIdx,
     foldIdxM,
     mapFst,
@@ -298,6 +299,9 @@ mapIdx f xs = map (uncurry f) $ zip xs [0..]
 
 mapIdxM :: (Monad m) => (a -> Int -> m b) -> [a] -> m [b]
 mapIdxM f xs = mapM (uncurry f) $ zip xs [0..]
+
+mapIdxM_ :: (Monad m) => (a -> Int -> m ()) -> [a] -> m ()
+mapIdxM_ f xs = mapM_ (uncurry f) $ zip xs [0..]
 
 foldIdx :: (a -> b -> Int -> a) -> a -> [b] -> a
 foldIdx f acc xs = foldl' (\acc (x,idx) -> f acc x idx) acc $ zip xs [0..]

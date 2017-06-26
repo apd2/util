@@ -11,7 +11,7 @@ import Control.Monad.Error
 class (MonadError e m) => ContextError c e m | m -> e, m -> c where
     withContext :: c -> m a -> m a
 
-newtype CE m a = CE {unCE :: m a} deriving (Monad)
+newtype CE m a = CE {unCE :: m a} deriving (Functor, Applicative, Monad)
 
 instance (MonadPlus mp, MonadError (mp c, e) m) => MonadError e (CE m) where
     throwError e = CE $ throwError (mzero, e)
